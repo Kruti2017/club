@@ -17,8 +17,6 @@
 This program reads in the Titanic train set and tries to create a function
 to determine survivors 
 
-Had issue with 0x1D in data so brought set into EXCEL and resaved data. Issue 
-gone.
 
 
 """
@@ -180,11 +178,11 @@ for row in passengerList:
         survivedValue = 0.0
     
     trainingLine = [
-                    cabinValue, 
-                    sexValue,
-                    ageValue, 
-                    fareValue,
-                    classValue,
+                    cabinValue, # A
+                    sexValue, #B
+                    ageValue, #C
+                    fareValue, #D
+                    classValue, #E
                     survivedValue,
                     row['PassengerId']
                    ]
@@ -196,13 +194,13 @@ if (testMode):
    
 """ 
 Our assumption is that this formula is good:
-    a*cabinValue + b*sexValue + c*ageValue => survived chances
+    a*cabinValue + b*sexValue + c*ageValue .... => survived chances
     
     where a,b,c are real number between -1 and 1, uniformly distibuted
     
 This is a silly assumption but it is worth a random walk
 
-We will start with random values for a, b, c, d and then randomly change one value
+We will start with random values for a, b, c, d, e and then randomly change one value
 and test if the results are better. 
 """
 
@@ -210,7 +208,8 @@ coefValues = [
               randomChange(), # A
               randomChange(), # B
               randomChange(), # C
-              randomChange()  # D
+              randomChange(), # D
+              randomChange()  # E
              ]
 
 if (testMode):
