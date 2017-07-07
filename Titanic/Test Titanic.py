@@ -58,8 +58,8 @@ except IOError:
 reader = csv.DictReader(csvFile)
 
 for row in reader:
-#    if (testMode):
-#        print(row['PassengerId'], row['Name'])
+    if (testMode):
+       print(row['PassengerId'], row['Name'])
     passengerList.append(row)
     
 if (testMode):
