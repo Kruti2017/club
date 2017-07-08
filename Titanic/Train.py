@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 
-============================================================================================================
+==============================================================================
 This program reads in the Titanic train set and tries to create a function
 to determine survivors 
 
@@ -32,7 +32,7 @@ import numpy as np
 def randomChange():
     
     return ((np.random.uniform()* 2) -1)
-
+#    return ((np.random.uniform()* 1) -0)
 
 def randomCoef(coef):
     
@@ -89,16 +89,16 @@ def theResults(train):
 
 
 """
-#==========================================================================================================
+#=============================================================================
 """
 
-version = "0.01"
+version = "0.02"
 program = "Train"
 
 testMode = False
 
 """
-============================================================================================================
+==============================================================================
 The main program begins here
 
 
@@ -170,7 +170,6 @@ for row in passengerList:
         else:
                classValue = 0.0
 
-
 #Just made it easier to use        
     if ((row['Survived'] == '1')):
         survivedValue = 1.0
@@ -196,39 +195,35 @@ if (testMode):
 Our assumption is that this formula is good:
     a*cabinValue + b*sexValue + c*ageValue .... => survived chances
     
-    where a,b,c are real number between -1 and 1, uniformly distibuted
+    where a,b,c ... are real number between -1 and 1, uniformly distibuted
     
 This is a silly assumption but it is worth a random walk
 
-We will start with random values for a, b, c, d, e and then randomly change one value
-and test if the results are better. 
+We will start with random values for a, b, c, ... and then randomly change one
+value and test if the results are better. 
 """
 
-coefValues = [
-              randomChange(), # A
-              randomChange(), # B
-              randomChange(), # C
-              randomChange(), # D
-              randomChange()  # E
-             ]
+# Create coef vales that count the same as data, i.e -2 length of row in 
+# training list
+row = trainingList[1]
+coefValues = []
+for i in range(0, (len(row)-2)):
+    coefValues.append(randomChange())
 
 if (testMode):
    print(coefValues)
 
 print("Working set made....")
 
-walking = 10000 #loop -1 this value
+walking = 15000 #loop -1 this value
 
-print("Random walk!", )           
+print("Random walk!" )           
 
 theMeasure(trainingList,coefValues) # create initial values
 previousRight = -1
 
 for i in range(1, walking):
-    
-    print("Walk = ",i) 
 
-    
     if (testMode):
         print(trainingList)
    
@@ -237,6 +232,7 @@ for i in range(1, walking):
     theMeasure(trainingList,changeValues) # add new values to list
     if (thePrize(trainingList)): # now check them and rebuild list to match
         coefValues = changeValues.copy()
+        print("Walk = ",i)     
         print("Change!:",coefValues) 
     
     right = theResults(trainingList)
