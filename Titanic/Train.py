@@ -15,8 +15,8 @@
 
 ==============================================================================
 This program reads in the Titanic train set and tries to create a function
-to determine survivors 
-
+to determine survivors, read in the test set, and create a final version
+ 
 
 
 """
@@ -62,7 +62,7 @@ def thePrize(train):
         survived = row[len(row) - 4] # Survived two more in
         previousTotal = previousTotal + abs(previous-survived)
         newTotal = newTotal + abs(newValue - survived)
-    
+  
     theChoice = (newTotal<previousTotal)
     
     for row in train:
@@ -87,12 +87,58 @@ def theResults(train):
  
     return (right)
 
+def alignData(row):
+     
+    # if any cabin value then it is good
+    if (row['Cabin']):
+        cabinValue = 0.0
+    else:
+        cabinValue = 1.0
+
+    # force to logical value 'Is not male?'        
+    if ((row['Sex'] == 'male')):
+        sexValue = 0.0
+    else:
+        sexValue = 1.0
+
+    # try to force age to value        
+    try:
+        ageValue = int(row['Ags']) / 100.0
+    except:
+        ageValue = 0.0
+        
+    # try to force age to value        
+    try:
+        fareValue = (row['Fare']) / 1000.0
+    except:
+        fareValue = 0.0
+
+    if ((row['Pclass']=='1')):
+        classValue = 1.0
+    else:
+        if ((row['Pclass']=='2')): 
+               classValue = 0.5
+        else:
+               classValue = 0.0
+
+
+    alignRow = [
+                    cabinValue, # A
+                    sexValue, #B
+                    ageValue, #C
+                    fareValue, #D
+                    classValue #E
+
+                   ]
+    
+    return(alignRow)
+
 
 """
 #=============================================================================
 """
 
-version = "0.02"
+version = "1.01"
 program = "Train"
 
 testMode = False
@@ -106,7 +152,7 @@ The main program begins here
 
 print(program," Version ", version)
 
-print("File being processed....")
+print("Training File being processed....")
 
 passengerList = []
 
@@ -123,11 +169,12 @@ for row in reader:
     if (testMode):
        print(row['PassengerId'], row['Name'])
     passengerList.append(row)
+csvFile.close()
     
 if (testMode):
    print(passengerList)
    
-print("File loaded....")
+print("Training File loaded....")
    
 # Now that we have the data lets create a working set
 print("Making working set....")
@@ -137,56 +184,18 @@ trainingList = []
 for row in passengerList:
     
     trainingLine = []
-
-# if any cabin value then it is good
-    if (row['Cabin']):
-        cabinValue = 0.0
-    else:
-        cabinValue = 1.0
-
-# force to logical value 'Is not male?'        
-    if ((row['Sex'] == 'male')):
-        sexValue = 0.0
-    else:
-        sexValue = 1.0
-
-#try to force age to value        
-    try:
-        ageValue = int(row['Ags']) / 100.0
-    except:
-        ageInt = 0.0
-        
-        #try to force age to value        
-    try:
-        fareValue = (row['Fare']) / 1000.0
-    except:
-        fareValue = 0.0
-
-    if ((row['Pclass']=='1')):
-        classValue = 1.0
-    else:
-        if ((row['Pclass']=='2')): 
-               classValue = 0.5
-        else:
-               classValue = 0.0
-
-#Just made it easier to use        
+    trainingLine = alignData(row);
+    
+    #Just made it easier to use        
     if ((row['Survived'] == '1')):
         survivedValue = 1.0
     else:
         survivedValue = 0.0
+        
+    trainingLine.append(survivedValue)
+    trainingLine.append(row['PassengerId'])
     
-    trainingLine = [
-                    cabinValue, # A
-                    sexValue, #B
-                    ageValue, #C
-                    fareValue, #D
-                    classValue, #E
-                    survivedValue,
-                    row['PassengerId']
-                   ]
-    
-    trainingList.append(trainingLine)
+    trainingList.append(trainingLine)   
 
 if (testMode):
    print(trainingList)
@@ -215,9 +224,9 @@ if (testMode):
 
 print("Working set made....")
 
-walking = 15000 #loop -1 this value
+walking = 15001 #loop -1 this value
 
-print("Random walk!" )           
+print("Running Epochs" )           
 
 theMeasure(trainingList,coefValues) # create initial values
 previousRight = -1
@@ -232,7 +241,7 @@ for i in range(1, walking):
     theMeasure(trainingList,changeValues) # add new values to list
     if (thePrize(trainingList)): # now check them and rebuild list to match
         coefValues = changeValues.copy()
-        print("Walk = ",i)     
+        print("Epoch = ",i)     
         print("Change!:",coefValues) 
     
     right = theResults(trainingList)
@@ -244,7 +253,73 @@ for i in range(1, walking):
 percentRight = 100 * (right / len(trainingList))
 print("Number right :",right," Percent:", percentRight)
 
+
+print("Final Values:")
 print(coefValues)           
 
-print("End of Line...")
+print("Test File being processed....")
 
+#testMode = True
+
+passengerTestList = []
+
+try:
+    csvFile = open('test fixed.csv', encoding='utf-8')
+
+except IOError:
+    print("Can't open file")
+    sys.exit(1)
+
+reader = csv.DictReader(csvFile)
+
+for row in reader:
+    if (testMode):
+       print(row['PassengerId'], row['Name'])
+    passengerTestList.append(row)
+csvFile.close()
+    
+if (testMode):
+   print(passengerTestList)
+   
+print("Test File loaded....")
+
+#testMode = True
+
+finalAnswer = []
+
+for row in passengerTestList:
+    
+    testLine = alignData(row)
+    x = 0
+    resultsValue = 0.0
+    for coefValue in coefValues:
+        resultsValue = coefValue*testLine[x] + resultsValue
+        x = x + 1
+    if (resultsValue > 0.5):
+        finalSurvived = '1'
+    else:
+        finalSurvived = '0'
+    finalLine = [row['PassengerId'], finalSurvived]
+    if (testMode):
+       print(finalLine) 
+    finalAnswer.append(finalLine)
+  
+print("Writing out final answer!")   
+    
+try:
+    finalFile = open('final answer.csv', encoding='utf-8', mode='w')
+
+except IOError:
+    print("Can't open file")
+    sys.exit(1)   
+
+finalFile.write('PassengerId,Survived\n')
+for row in finalAnswer:
+    finalFile.write(row[0])
+    finalFile.write(',')
+    finalFile.write(row[1])
+    finalFile.write('\n')
+    
+finalFile.close()
+
+print("End of Line...")
